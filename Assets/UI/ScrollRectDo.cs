@@ -35,7 +35,7 @@ public class ScrollRectDo : MonoBehaviour
     private ContentSizeFitter sizeFitter;
     private Vector2 cellSize;
     private Vector2 spacing;
-
+    private float scale;
 
     private float UpPoxY
     {
@@ -51,6 +51,7 @@ public class ScrollRectDo : MonoBehaviour
 
     public void Awake()
     {
+        scale = Define.Constant.ScaleFactor;
         rect = GetComponent<ScrollRect>();
         gridLayout = Content.GetComponent<GridLayoutGroup>();
         sizeFitter = Content.GetComponent<ContentSizeFitter>();
@@ -138,7 +139,7 @@ public class ScrollRectDo : MonoBehaviour
             //拖动快了会导致offset无限接近0，正负号出现错误？
             offset = vec2.y - lastFloat;
             lastFloat = vec2.y;
-            //Debug.LogWarning(lastIndex + "             " + firstIndex + "            " + allNum);
+            //Debug.LogWarning(lastIndex + "             " + firstIndex + "            " + allNum + "           " + ShowLine + "         "+ ShowLine * (cellSize.y + spacing.y));
             //Debug.LogWarning(offset);
             //Debug.LogWarning((offset > 0).ToString() + "            " + (UpPoxY + cellSize.y / 4 < 0).ToString() + "            " + (firstIndex != 0).ToString());
             //Debug.LogWarning((offset < 0).ToString() + "            " + (DownPoxY - cellSize.y / 4 > -ViewHeight).ToString() + "            " + (lastIndex != allNum).ToString() );
@@ -204,7 +205,7 @@ public class ScrollRectDo : MonoBehaviour
         for (int i = numPerLine - 1; i >= 0; i--)
         {
             var pos = goes[i].transform.position;
-            goes[i].transform.position = new Vector3(pos.x, pos.y + ShowLine * (cellSize.y + spacing.y), pos.z);
+            goes[i].transform.position = new Vector3(pos.x, pos.y + ShowLine * (cellSize.y + spacing.y) * scale, pos.z);
             goes[i].transform.SetAsFirstSibling();
         }
     }
@@ -229,7 +230,7 @@ public class ScrollRectDo : MonoBehaviour
         for (int i = 0; i < numPerLine; i++)
         {
             var pos = goes[i].transform.position;
-            goes[i].transform.position = new Vector3(pos.x, pos.y - ShowLine * (cellSize.y + spacing.y), pos.z);
+            goes[i].transform.position = new Vector3(pos.x, pos.y - ShowLine * (cellSize.y + spacing.y) * scale, pos.z);
             goes[i].transform.SetAsLastSibling();
         }
     }
