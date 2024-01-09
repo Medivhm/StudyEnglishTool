@@ -12,6 +12,21 @@ namespace Tools
 {
     class FileTool
     {
+        public static bool HasFile(string p)
+        {
+            string path = p;
+            if (File.Exists(path))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public static void CopyFile(string from, string to)
+        {
+            File.Copy(from, to, true);
+        }
+
         public static void DeleteWordsFile()
         {
             string path = FilePath.WordsPath;
@@ -50,7 +65,8 @@ namespace Tools
             string path = FilePath.WordsPath;
             if (!File.Exists(path))
             {
-                DebugTool.Error("[ERROR --- 003] 未找到文件:" + path);
+                File.Create(path);
+                WordManager.Instance.words = new Dictionary<string, Model.Word>();
                 return;
             }
 

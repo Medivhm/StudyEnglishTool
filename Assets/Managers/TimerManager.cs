@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Tools;
 using UnityEngine;
 
@@ -32,7 +30,7 @@ namespace Managers
             public void Update(float deltaTime)
             {
                 this.total += deltaTime;
-                if(this.total >= time)
+                if (this.total >= time)
                 {
                     this.callback();
                     this.isRunning = false;
@@ -45,27 +43,45 @@ namespace Managers
             }
         };
 
+        // 手动定时器
         Dictionary<string, Timer> timers = new Dictionary<string, Timer>();
         List<string> deleteTimers = new List<string>();
+        // 自动定时器
+        Dictionary<int, Timer> autoTimers = new Dictionary<int, Timer>();
+        List<int> deleteAutoTimers = new List<int>();
 
-        public void CreateTimer(string timerName, float time, Action callback)
+        private int timerId;
+        private int TimerId
         {
-            if(timers.ContainsKey(timerName))
+            get
             {
-                DebugTool.Error("[ERROR --- 004] TimersManager 已存在相同名称Timer");
-                return;
+                int temp = timerId;
+                int rangeTimes = 0;
+                while (autoTimers.ContainsKey(temp) && rangeTimes < Define.Constant.TimerMax)
+                {
+                    temp = (temp + 1) % Define.Constant.TimerMax;
+                    rangeTimes++;
+                }
+                if (rangeTimes == Define.Constant.TimerMax)
+                {
+                    DebugTool.Error("定时器超数量了");
+                    throw new Exception("定时器超数量了");
+                }
+                else
+                {
+                    timerId = temp;
+                    return temp;
+                }
             }
-            timers.Add(timerName, new Timer(time, callback));
+            set
+            {
+                timerId = value;
+            }
         }
 
-        public void RemoveTimer(string timerName)
+        public void Init()
         {
-            Timer timer = null;
-            timers.TryGetValue(timerName, out timer);
-            if (timer != null)
-            {
-                timer.Stop();
-            }
+            TimerId = 0;
         }
 
         private void Update()
@@ -94,6 +110,24 @@ namespace Managers
                     }
                 }
             }
+
+            List<int> autoTimerIds = autoTimers.Keys.ToList();
+            foreach (int timerId in autoTimerIds)
+            {
+                Timer timer = null;
+                autoTimers.TryGetValue(timerId, out timer);
+                if (timer != null)
+                {
+                    if (timer.IsRunning)
+                    {
+                        timer.Update(deltaTime);
+                    }
+                    else
+                    {
+                        deleteAutoTimers.Add(timerId);
+                    }
+                }
+            }
         }
 
         private void TimerDestroy()
@@ -106,6 +140,52 @@ namespace Managers
                 }
             }
             deleteTimers.Clear();
+
+            foreach (int timerId in deleteAutoTimers)
+            {
+                if (autoTimers.TryGetValue(timerId, out _))
+                {
+                    autoTimers.Remove(timerId);
+                }
+            }
+            deleteAutoTimers.Clear();
+        }
+
+        public void CreateTimer(string timerName, float time, Action callback)
+        {
+            if (timers.ContainsKey(timerName))
+            {
+                DebugTool.Error("TimersManager 已存在相同名称Timer");
+                return;
+            }
+            timers.Add(timerName, new Timer(time, callback));
+        }
+
+        public int CreateTimer(float time, Action callback)
+        {
+            int timerId = TimerId;
+            autoTimers.Add(TimerId, new Timer(time, callback));
+            return timerId;
+        }
+
+        public void RemoveTimer(string timerName)
+        {
+            Timer timer = null;
+            timers.TryGetValue(timerName, out timer);
+            if (timer != null)
+            {
+                timer.Stop();
+            }
+        }
+
+        public void RemoveTimer(int timerId)
+        {
+            Timer timer = null;
+            autoTimers.TryGetValue(timerId, out timer);
+            if (timer != null)
+            {
+                timer.Stop();
+            }
         }
     }
 }

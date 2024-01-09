@@ -9,5 +9,6 @@ namespace Define
     class Constant
     {
         public static float ScaleFactor = 1;
+        public static int TimerMax = 100;
     }
 }

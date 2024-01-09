@@ -28,7 +28,10 @@ namespace UI
         {
             Logic.ResetRand();
             Word word = Logic.Rand();
-            StartCoroutine(ResetContent(word.GetMeanings()));
+            if(word != null )
+            {
+                StartCoroutine(ResetContent(word.GetMeanings()));
+            }
         }
 
         public IEnumerator ResetContent(List<Meaning> meanings)
